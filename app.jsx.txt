@@ -1,0 +1,188 @@
+import { useState } from "react";
+
+const mealLibrary = [
+  {
+    name: "Herb-Roasted Chicken Nourish Bowl",
+    diet: "omnivore",
+    protein: "Chicken",
+    carbs: "Quinoa",
+    veg: ["Broccoli", "Carrots"],
+    format: "hot",
+    iron: false,
+    focus: "Balanced nourishment & sustained energy"
+  },
+  {
+    name: "Grounding Turkey Vitality Bowl",
+    diet: "omnivore",
+    protein: "Turkey",
+    carbs: "Rice",
+    veg: ["Spinach", "Peppers"],
+    format: "hot",
+    iron: false,
+    focus: "Steady energy & blood sugar balance"
+  },
+  {
+    name: "Iron-Rich Rooted Beef Bowl",
+    diet: "omnivore",
+    protein: "Beef",
+    carbs: "Rice",
+    veg: ["Spinach", "Peppers"],
+    format: "hot",
+    iron: true,
+    focus: "Iron support & deep nourishment"
+  },
+  {
+    name: "Garden Herb Chicken Wrap",
+    diet: "omnivore",
+    protein: "Chicken",
+    carbs: "Wrap",
+    veg: ["Spinach", "Cucumber"],
+    format: "cold",
+    iron: false,
+    focus: "Light, refreshing midday fuel"
+  },
+  {
+    name: "Plant-Powered Vitality Bowl",
+    diet: "vegan",
+    protein: "Tofu",
+    carbs: "Quinoa",
+    veg: ["Broccoli", "Zucchini"],
+    format: "hot",
+    iron: true,
+    focus: "Plant-based protein & mineral support"
+  },
+  {
+    name: "Lentil & Greens Restoration Bowl",
+    diet: "vegan",
+    protein: "Lentils",
+    carbs: "Rice",
+    veg: ["Spinach", "Tomatoes"],
+    format: "hot",
+    iron: true,
+    focus: "Iron support & sustained fullness"
+  },
+  {
+    name: "Fresh Garden Wrap",
+    diet: "vegan",
+    protein: "Chickpeas",
+    carbs: "Wrap",
+    veg: ["Spinach", "Peppers"],
+    format: "cold",
+    iron: false,
+    focus: "Light nourishment & digestive ease"
+  }
+];
+
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+export default function ClientPlanGenerator() {
+  const [clientName, setClientName] = useState("");
+  const [goal, setGoal] = useState("fat loss");
+  const [diet, setDiet] = useState("omnivore");
+  const [ironFocus, setIronFocus] = useState(false);
+  const [noHeat, setNoHeat] = useState(false);
+  const [variety, setVariety] = useState(3);
+  const [plan, setPlan] = useState([]);
+
+  const getReason = (meal) => {
+    if (ironFocus && meal.iron) return "Supports iron levels and overall energy.";
+    if (goal === "fat loss") return "Balanced to support fat loss and sustained fullness.";
+    if (goal === "muscle") return "Supports muscle repair and strength.";
+    return "Designed for steady energy and nourishment.";
+  };
+
+  const generatePlan = () => {
+    let filtered = mealLibrary.filter(m =>
+      (diet === "omnivore" || m.diet === diet) &&
+      (!noHeat || m.format === "cold") &&
+      (!ironFocus || m.iron)
+    );
+
+    if (filtered.length === 0) filtered = mealLibrary;
+
+    const shuffled = [...filtered].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, variety);
+
+    const weekly = days.map((day, i) => ({
+      day,
+      meal: selected[i % selected.length]
+    }));
+
+    setPlan(weekly);
+  };
+
+  const handlePrint = () => window.print();
+
+  return (
+    <div className="p-8 max-w-3xl mx-auto space-y-8 bg-stone-50 text-stone-800">
+
+      {/* Header */}
+      <div className="border-b pb-4">
+        <h1 className="text-3xl font-semibold tracking-wide">The Holistic Apothecary Kitchen</h1>
+        <p className="text-sm text-stone-600 mt-1">Nourishment rooted in balance, nature, and intention</p>
+        {clientName && (
+          <p className="mt-3 text-sm">Prepared for: <span className="font-medium">{clientName}</span></p>
+        )}
+      </div>
+
+      {/* Controls (hidden in PDF) */}
+      <div className="grid grid-cols-2 gap-4 print:hidden">
+        <input
+          placeholder="Client Name"
+          className="border p-2 rounded-xl"
+          onChange={(e) => setClientName(e.target.value)}
+        />
+
+        <select onChange={(e) => setGoal(e.target.value)} className="border p-2 rounded-xl">
+          <option value="fat loss">Fat Loss</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="muscle">Muscle Gain</option>
+        </select>
+
+        <select onChange={(e) => setDiet(e.target.value)} className="border p-2 rounded-xl">
+          <option value="omnivore">Omnivore</option>
+          <option value="vegan">Vegan</option>
+        </select>
+
+        <select onChange={(e) => setVariety(Number(e.target.value))} className="border p-2 rounded-xl">
+          <option value={2}>2 Meals</option>
+          <option value={3}>3 Meals</option>
+          <option value={5}>5 Meals</option>
+        </select>
+      </div>
+
+      <div className="flex gap-6 print:hidden">
+        <label><input type="checkbox" onChange={(e) => setIronFocus(e.target.checked)} /> Iron Support</label>
+        <label><input type="checkbox" onChange={(e) => setNoHeat(e.target.checked)} /> No Microwave</label>
+      </div>
+
+      <div className="flex gap-4 print:hidden">
+        <button onClick={generatePlan} className="bg-green-900 text-white px-5 py-2 rounded-2xl">Generate Plan</button>
+        <button onClick={handlePrint} className="border px-5 py-2 rounded-2xl">Download PDF</button>
+      </div>
+
+      {/* Plan Output */}
+      <div className="space-y-6">
+        {plan.map((item, i) => (
+          <div key={i} className="p-5 border border-stone-300 rounded-2xl bg-white">
+            <h2 className="text-lg font-semibold text-green-900">{item.day}</h2>
+            <h3 className="text-xl">{item.meal.name}</h3>
+            <p className="text-sm text-stone-500">{item.meal.format === "cold" ? "Cold meal" : "Hot meal"}</p>
+
+            <p className="mt-2 text-sm"><strong>Includes:</strong> {item.meal.protein}, {item.meal.carbs}, {item.meal.veg.join(", ")}</p>
+
+            <p className="mt-2 text-sm italic text-stone-700">{item.meal.focus || getReason(item.meal)}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="pt-6 border-t text-sm text-stone-600">
+        <p><strong>Storage:</strong> Keep refrigerated and consume within 3–4 days.</p>
+        <p><strong>Reheating:</strong> Reheat hot meals for 1–2 minutes or enjoy cold options as is.</p>
+        <p className="mt-2">Crafted with care by The Holistic Apothecary Kitchen</p>
+      </div>
+
+    </div>
+  );
+}
